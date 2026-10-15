@@ -1,0 +1,23 @@
+license = "MIT"
+issueTrackerURL = "https://github.com/dns54/ChickensShed/issues"
+
+modLoader = "javafml"
+loaderVersion = "[47,)"
+
+[[mods]]
+modId = "${id}"
+displayName = "${name}"
+version = "${version}"
+authors = "dns54"
+description = "Chickens shed their feathers occasionally."
+logoFile = "assets/chickensshed/icon.png"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/chickensshed"
+# Server-side only: clients without the mod can join
+displayTest = "IGNORE_ALL_VERSION"
+
+[[dependencies.${id}]]
+modId = "minecraft"
+mandatory = true
+versionRange = "${minecraft}"
+ordering = "NONE"
+side = "BOTH"

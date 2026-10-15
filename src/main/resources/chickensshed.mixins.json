@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.github.dns54.chickensshed.mixin",
+  "plugin": "io.github.dns54.chickensshed.MixinPlugin",
+  "compatibilityLevel": "${java}",
+  "mixins": [
+    "LivingEntityMixin",
+    "SupplementariesMixin"
+  ],
+  "client": [
+    "ItemStackMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

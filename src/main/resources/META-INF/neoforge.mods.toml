@@ -1,21 +1,20 @@
-license = "CC0-1.0"
+license = "MIT"
+issueTrackerURL = "https://github.com/dns54/ChickensShed/issues"
 
-modLoader="javafml"
-loaderVersion="[1,)"
+modLoader = "javafml"
+loaderVersion = "[1,)"
 
 [[mods]]
 modId = "${id}"
 displayName = "${name}"
 version = "${version}"
-authors = "Me!"
-description = "This is an example description! Tell everyone what your mod is about!"
-
-logoFile = "assets/template/icon.png"
-#displayURL = "..."
-#issueTrackerUrl = "..."
+authors = "dns54"
+description = "Chickens shed their feathers occasionally."
+${icon_key} = "assets/chickensshed/icon.png"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/chickensshed"
 
 [[mixins]]
-config = "template.mixins.json"
+config = "chickensshed.mixins.json"
 
 [[dependencies.${id}]]
 modId = "minecraft"
