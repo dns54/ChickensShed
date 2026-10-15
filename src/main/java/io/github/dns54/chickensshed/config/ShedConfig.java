@@ -41,13 +41,32 @@ public final class ShedConfig {
         public int maxSeconds = 1500;
         public boolean babies = true;
 
+        /** Why a drop is unusable: a log message, and a key under {@code chickensshed.edit.} for the edit screen. */
+        public enum Problem {
+            UNKNOWN_ITEM("item must be an id like minecraft:feather"),
+            COUNT_RANGE("count must be 1-64"),
+            MIN_RANGE("minSeconds must be at least 1"),
+            MAX_RANGE("maxSeconds must not be below minSeconds"),
+            TOO_LONG("maxSeconds must be at most " + MAX_SECONDS);
+
+            public final String message;
+
+            Problem(String message) {
+                this.message = message;
+            }
+
+            public String key() {
+                return "chickensshed.edit." + name().toLowerCase(java.util.Locale.ROOT);
+            }
+        }
+
         /** @return why this drop is unusable, or null when valid */
-        public String problem() {
-            if (item == null || !ID.matcher(item).matches()) return "item must be an id like minecraft:feather";
-            if (count < 1 || count > 64) return "count must be 1-64";
-            if (minSeconds < 1) return "minSeconds must be at least 1";
-            if (maxSeconds < minSeconds) return "maxSeconds must not be below minSeconds";
-            if (maxSeconds > MAX_SECONDS) return "maxSeconds must be at most " + MAX_SECONDS;
+        public Problem problem() {
+            if (item == null || !ID.matcher(item).matches()) return Problem.UNKNOWN_ITEM;
+            if (count < 1 || count > 64) return Problem.COUNT_RANGE;
+            if (minSeconds < 1) return Problem.MIN_RANGE;
+            if (maxSeconds < minSeconds) return Problem.MAX_RANGE;
+            if (maxSeconds > MAX_SECONDS) return Problem.TOO_LONG;
             return null;
         }
 
@@ -149,7 +168,9 @@ public final class ShedConfig {
                 validateInteger(fields, "minSeconds");
                 validateInteger(fields, "maxSeconds");
                 MobDrop drop = GSON.fromJson(entry.getValue(), MobDrop.class);
-                String problem = !isValidId(mob) ? "mob must be an id like minecraft:chicken" : drop.problem();
+                MobDrop.Problem dropProblem = drop.problem();
+                String problem = !isValidId(mob) ? "mob must be an id like minecraft:chicken"
+                    : dropProblem == null ? null : dropProblem.message;
                 if (problem == null) {
                     result.put(mob, drop);
                     continue;

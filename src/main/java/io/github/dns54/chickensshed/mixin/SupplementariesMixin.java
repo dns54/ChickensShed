@@ -34,9 +34,12 @@ public abstract class SupplementariesMixin {
                 && ((CapturedMobInstance<?>) (Object) this).getEntityForRenderer() instanceof Shedder shedder) {
             shedder.chickensshed$shed(server);
             // Supplementaries saves this tag, not the cached entity used for ticking.
+            int old = tag.getInt(Shedder.TIME_KEY);
             int time = shedder.chickensshed$getTime();
             if (time > 0) tag.putInt(Shedder.TIME_KEY, time);
             else tag.remove(Shedder.TIME_KEY);
+            // The jar never marks its chunk unsaved, so a reload would bring back an old countdown
+            if (time != old) level.blockEntityChanged(pos);
         }
         *///?}
     }

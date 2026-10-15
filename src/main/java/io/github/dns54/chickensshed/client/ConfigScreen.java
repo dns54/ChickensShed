@@ -42,7 +42,7 @@ public class ConfigScreen extends ShedScreen {
             Button edit = row.add(Button.builder(describe(id, drop), b -> edit(id, drop.copy()))
                 .width(WIDTH - BUTTON_HEIGHT - GAP).build(), 0);
             edit.setTooltip(Tooltip.create(Component.translatable("chickensshed.config.hint")));
-            Button remove = row.add(Button.builder(Component.literal("✕").withStyle(ChatFormatting.RED), b -> remove(id))
+            Button remove = row.add(Button.builder(Component.literal("✕").withStyle(ChatFormatting.RED), b -> remove(id, true))
                 .width(BUTTON_HEIGHT).build(), WIDTH - BUTTON_HEIGHT);
             remove.setTooltip(Tooltip.create(Component.translatable("chickensshed.config.remove")));
             ItemStack icon = Shedding.findItem(drop.item).map(ShedScreen::icon).orElse(null);
@@ -99,16 +99,18 @@ public class ConfigScreen extends ShedScreen {
             : Component.translatable("chickensshed.time." + unit + "_range", from, to);
     }
 
-    /** Saves {@code mobs} as the new config, remembering the current one for Undo when {@code undoable}. */
-    void change(Map<String, MobDrop> mobs, boolean undoable) {
+    /** Saves {@code mobs} as the new config, remembering the current one for Undo when {@code undoable}; false if not saved. */
+    boolean change(Map<String, MobDrop> mobs, boolean undoable) {
         Map<String, MobDrop> before = copy(ShedConfig.mobs());
         try {
             ShedConfig.save(mobs);
             if (undoable) history.push(before);
             error = null;
+            return true;
         } catch (IOException e) {
             ChickensShed.LOGGER.error("Could not save {}", ShedConfig.FILE_NAME, e);
             error = Component.translatable("chickensshed.config.save_failed");
+            return false;
         }
     }
 
@@ -118,30 +120,31 @@ public class ConfigScreen extends ShedScreen {
     }
 
     /** Replaces {@code oldId} (null when adding) with {@code newId}, keeping its place in the list. */
-    void put(String oldId, String newId, MobDrop drop) {
+    boolean put(String oldId, String newId, MobDrop drop) {
         Map<String, MobDrop> mobs = new LinkedHashMap<>();
         ShedConfig.mobs().forEach((id, old) -> {
             if (id.equals(oldId)) mobs.put(newId, drop);
             else mobs.put(id, old);
         });
         mobs.putIfAbsent(newId, drop);
-        change(mobs, false);
+        return change(mobs, false);
     }
 
     boolean contains(String id) {
         return ShedConfig.mobs().containsKey(id);
     }
 
-    void remove(String id) {
+    /** Removes the mob, as a new Undo step when {@code undoable}. */
+    void remove(String id, boolean undoable) {
         Map<String, MobDrop> mobs = new LinkedHashMap<>(ShedConfig.mobs());
         mobs.remove(id);
-        change(mobs, true);
+        change(mobs, undoable);
         refresh();
     }
 
     void undo() {
-        Map<String, MobDrop> previous = history.pop();
-        change(previous, false);
+        // Keep the step when saving fails, so Undo can be tried again
+        if (change(history.peek(), false)) history.pop();
         refresh();
     }
 

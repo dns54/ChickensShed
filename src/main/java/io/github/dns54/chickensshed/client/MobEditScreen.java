@@ -65,7 +65,8 @@ public class MobEditScreen extends ShedScreen {
                 onClose();
             }).build()
             : Button.builder(Component.translatable("chickensshed.edit.delete").withStyle(ChatFormatting.RED), b -> {
-                list.remove(savedId);
+                // Already one Undo step when this visit saved an edit, so Undo brings back the original
+                list.remove(savedId, !remembered);
                 onClose();
             }).build();
         footer(first, Button.builder(CommonComponents.GUI_DONE, b -> onClose()).build());
@@ -111,27 +112,23 @@ public class MobEditScreen extends ShedScreen {
             remembered = true;
         }
         String id = withNamespace(mob);
-        list.put(savedId, id, drop.copy());
-        savedId = id;
+        if (list.put(savedId, id, drop.copy())) savedId = id;
     }
 
     /** Copies the fields into {@link #drop}; returns what's wrong, or null. */
     private Component check() {
         String mobId = withNamespace(mob);
         drop.item = withNamespace(item);
-        Long count = number(this.count), min = number(this.min), max = number(this.max);
+        Integer count = number(this.count), min = number(this.min), max = number(this.max);
         if (count == null || min == null || max == null) return Component.translatable("chickensshed.edit.not_number");
         if (Shedding.findMob(mobId).isEmpty()) return Component.translatable("chickensshed.edit.unknown_mob");
         if (!mobId.equals(savedId) && list.contains(mobId)) return Component.translatable("chickensshed.edit.duplicate");
         if (Shedding.findItem(drop.item).isEmpty()) return Component.translatable("chickensshed.edit.unknown_item");
-        if (count < 1 || count > 64) return Component.translatable("chickensshed.edit.count_range");
-        if (min < 1) return Component.translatable("chickensshed.edit.min_range");
-        if (max > MobDrop.MAX_SECONDS) return Component.translatable("chickensshed.edit.too_long", MobDrop.MAX_SECONDS);
-        if (max < min) return Component.translatable("chickensshed.edit.max_range");
-        drop.count = count.intValue();
-        drop.minSeconds = min.intValue();
-        drop.maxSeconds = max.intValue();
-        return null;
+        drop.count = count;
+        drop.minSeconds = min;
+        drop.maxSeconds = max;
+        MobDrop.Problem problem = drop.problem();
+        return problem == null ? null : Component.translatable(problem.key(), MobDrop.MAX_SECONDS);
     }
 
     /** Shows "= 15 min" next to a time in seconds. */
@@ -149,13 +146,13 @@ public class MobEditScreen extends ShedScreen {
     }
 
     /** Whole number, saturated instead of failing when it's too big to parse; null when not a number. */
-    private static Long number(String text) {
+    private static Integer number(String text) {
         text = text.trim();
         if (!text.matches("-?\\d+")) return null;
         try {
-            return Long.parseLong(text);
+            return Integer.parseInt(text);
         } catch (NumberFormatException e) {
-            return text.startsWith("-") ? Long.MIN_VALUE : Long.MAX_VALUE;
+            return text.startsWith("-") ? Integer.MIN_VALUE : Integer.MAX_VALUE;
         }
     }
 

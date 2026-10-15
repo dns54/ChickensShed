@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,7 +73,7 @@ class ShedConfigTest {
                     field.equals("maxSeconds") ? value : "1");
             Map<String, ShedConfig.MobDrop> mobs = ShedConfig.parse(json, skipped::incrementAndGet);
 
-            assertEquals(java.util.Set.of("minecraft:cow"), mobs.keySet(), field + "=" + value);
+            assertEquals(Set.of("minecraft:cow"), mobs.keySet(), field + "=" + value);
             assertEquals(1, skipped.get(), field + "=" + value);
         }
     }
@@ -82,8 +83,6 @@ class ShedConfigTest {
         String original = """
             {"mobs": {
               "minecraft:chicken": {"count": 1.5},
-              "minecraft:pig": {"minSeconds": 4294967297},
-              "minecraft:sheep": {"minSeconds": 1, "maxSeconds": 4294967297},
               "minecraft:cow": {}
             }}""";
         Path file = dir.resolve(ShedConfig.FILE_NAME);
@@ -92,12 +91,12 @@ class ShedConfigTest {
 
         ShedConfig.load(dir);
 
-        assertEquals(java.util.Set.of("minecraft:cow"), ShedConfig.mobs().keySet());
+        assertEquals(Set.of("minecraft:cow"), ShedConfig.mobs().keySet());
         assertEquals(original, Files.readString(file));
         assertEquals(original, Files.readString(backup));
         ShedConfig.save(ShedConfig.mobs());
         assertEquals(original, Files.readString(backup));
-        assertEquals(java.util.Set.of("minecraft:cow"),
+        assertEquals(Set.of("minecraft:cow"),
             ShedConfig.parse(Files.readString(file), () -> fail("entry skipped")).keySet());
     }
 

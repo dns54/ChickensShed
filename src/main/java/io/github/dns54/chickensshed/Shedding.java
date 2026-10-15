@@ -46,9 +46,14 @@ public final class Shedding {
         if (--time > 0) return time;
 
         if (mobLoot(level)) {
-            ItemEntity item = new ItemEntity(level, entity.getX(), entity.getY(), entity.getZ(), new ItemStack(drop.item, drop.count));
-            item.setDefaultPickUpDelay();
-            level.addFreshEntity(item);
+            // Split into full stacks: hoppers cut over-sized stacks down and lose the rest
+            int stackSize = new ItemStack(drop.item).getMaxStackSize();
+            for (int left = drop.count; left > 0; left -= stackSize) {
+                ItemEntity item = new ItemEntity(level, entity.getX(), entity.getY(), entity.getZ(),
+                    new ItemStack(drop.item, Math.min(left, stackSize)));
+                item.setDefaultPickUpDelay();
+                level.addFreshEntity(item);
+            }
         }
         return roll(entity, drop);
     }
