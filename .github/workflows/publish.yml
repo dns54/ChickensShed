@@ -1,0 +1,131 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version-type:
+        description: Release channel
+        type: choice
+        options: [release, beta, alpha]
+        default: release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Read mod version
+        id: version
+        run: echo "version=$(grep -oP '^mod\.version = "\K[^"]+' stonecutter.properties.toml)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup JDKs
+        uses: actions/setup-java@v6
+        with:
+          java-version: |
+            17
+            21
+            25
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build merged jars
+        run: ./gradlew build mergedJars
+
+      - name: Extract changelog
+        run: |
+          awk -v v="## ${{ steps.version.outputs.version }}" '$0 == v { found = 1; next } /^## / { found = 0 } found' CHANGELOG.md > build/libs/changelog.md
+          grep -q . build/libs/changelog.md || { echo "CHANGELOG.md has no '## ${{ steps.version.outputs.version }}' section"; exit 1; }
+
+      - name: Upload jars
+        uses: actions/upload-artifact@v7
+        with:
+          name: jars
+          path: |
+            build/libs/*.jar
+            build/libs/changelog.md
+
+  # Keep this list in sync with settings.gradle.kts and `mod.mc_releases` in stonecutter.properties.toml.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mc: '1.20.1'
+            game-versions: '1.20.1'
+            loaders: 'fabric forge'
+            java: 17
+            dependencies: 'supplementaries(optional){modrinth:fFEIiSDQ}{curseforge:412082}'
+          - mc: '1.21.1'
+            game-versions: |
+              1.21
+              1.21.1
+            loaders: 'fabric neoforge'
+            java: 21
+            dependencies: 'supplementaries(optional){modrinth:fFEIiSDQ}{curseforge:412082}'
+          - mc: '1.21.11'
+            game-versions: '1.21.11'
+            loaders: 'fabric neoforge'
+            java: 21
+          - mc: '26.3'
+            game-versions: '26.3'
+            loaders: 'fabric neoforge'
+            java: 25
+    env:
+      VERSION: ${{ needs.build.outputs.version }}+${{ matrix.mc }}
+    steps:
+      # Publishing builds every version at once, so versions already on Modrinth are skipped instead of duplicated.
+      # shortcut: CurseForge has no keyless lookup, so it follows Modrinth; if only the CurseForge upload failed, upload that file by hand.
+      - name: Check if already published
+        id: check
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H 'User-Agent: dns54/ChickensShed' "https://api.modrinth.com/v2/project/cRJuLZ2D/version/${VERSION/+/%2B}")
+          case $code in
+            200) echo "$VERSION is already published, skipping"; echo "exists=true" >> "$GITHUB_OUTPUT" ;;
+            404) echo "exists=false" >> "$GITHUB_OUTPUT" ;;
+            *) echo "Modrinth answered $code"; exit 1 ;;
+          esac
+
+      - name: Download jars
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/download-artifact@v8
+        with:
+          name: jars
+
+      - name: Publish ${{ matrix.mc }}
+        if: steps.check.outputs.exists == 'false'
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: cRJuLZ2D
+          modrinth-featured: true
+          modrinth-unfeature-mode: subset
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          curseforge-id: 282684
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          files: chickensshed-${{ needs.build.outputs.version }}+${{ matrix.mc }}.jar
+
+          name: ChickensShed ${{ needs.build.outputs.version }} for ${{ matrix.mc }}
+          version: ${{ env.VERSION }}
+          version-type: ${{ inputs.version-type }}
+          changelog-file: changelog.md
+
+          loaders: ${{ matrix.loaders }}
+          game-versions: ${{ matrix.game-versions }}
+          game-version-filter: none
+          dependencies: ${{ matrix.dependencies }}
+          # Server-side: required on the server, optional on clients
+          environment: server | client?
+          java: ${{ matrix.java }}
+
+          retry-attempts: 2
+          retry-delay: 10000
+          fail-mode: fail

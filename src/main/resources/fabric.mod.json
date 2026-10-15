@@ -3,26 +3,30 @@
   "id": "${id}",
   "version": "${version}",
   "name": "${name}",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "Chickens shed their feathers occasionally.",
   "authors": [
-    "Me!"
+    "dns54"
   ],
   "contact": {
-    "homepage": "https://stonecutter.kikugie.dev/",
-    "sources": "https://codeberg.org/stonecutter/template-fabric"
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/chickensshed",
+    "modrinth": "https://modrinth.com/mod/chickensshed",
+    "sources": "https://github.com/dns54/ChickensShed",
+    "issues": "https://github.com/dns54/ChickensShed/issues"
   },
-  "license": "CC0-1.0",
-  "icon": "assets/template/icon.png",
+  "license": "MIT",
+  "icon": "assets/chickensshed/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.example.TemplateModFabric"
+      "io.github.dns54.chickensshed.ChickensShedFabric"
+    ],
+    "modmenu": [
+      "io.github.dns54.chickensshed.client.ModMenuIntegration"
     ]
   },
   "mixins": [
-    "template.mixins.json"
+    "chickensshed.mixins.json"
   ],
-  "accessWidener": "template.ct",
   "depends": {
     "fabricloader": ">=${loader}",
     "minecraft": "${minecraft}"
