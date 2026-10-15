@@ -109,7 +109,6 @@ public class MobEditScreen extends ShedScreen {
         return Component.literal(font.plainSubstrByWidth(text.getString(), width - font.width("…")) + "…");
     }
 
-    /** Saves the mob as soon as everything is valid. */
     private void changed() {
         problem = check();
         if (problem != null) return;

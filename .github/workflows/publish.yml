@@ -37,7 +37,6 @@ jobs:
       - name: Build merged jars
         run: ./gradlew build mergedJars
 
-      # The release notes are this version's section of CHANGELOG.md
       - name: Extract changelog
         run: |
           awk -v v="## ${{ steps.version.outputs.version }}" '$0 == v { found = 1; next } /^## / { found = 0 } found' CHANGELOG.md > build/libs/changelog.md
@@ -51,7 +50,6 @@ jobs:
             build/libs/*.jar
             build/libs/changelog.md
 
-  # One release per Minecraft version: its jar holds all its loaders (`mergedJars`).
   # Keep this list in sync with settings.gradle.kts and `mod.mc_releases` in stonecutter.properties.toml.
   publish:
     needs: build
@@ -123,7 +121,6 @@ jobs:
           loaders: ${{ matrix.loaders }}
           game-versions: ${{ matrix.game-versions }}
           game-version-filter: none
-          # Only Supplementaries (optional, where it exists); nothing else is declared
           dependencies: ${{ matrix.dependencies }}
           # Server-side: required on the server, optional on clients
           environment: server | client?

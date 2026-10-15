@@ -104,7 +104,6 @@ public abstract class ShedScreen extends Screen {
         return height - FOOTER + (FOOTER - BUTTON_HEIGHT) / 2;
     }
 
-    /** Places buttons side by side across the full width of the grid, all equally wide. */
     protected void footer(Button... buttons) {
         int buttonWidth = (WIDTH - GAP * (buttons.length - 1)) / buttons.length;
         for (int i = 0; i < buttons.length; i++) {

@@ -18,10 +18,6 @@ val requiredJava = when {
 }
 
 repositories {
-    /**
-     * Restricts dependency search of the given [groups] to the [maven URL][url],
-     * improving the setup speed.
-     */
     fun strictMaven(url: String, alias: String, vararg groups: String) = exclusiveContent {
         forRepository { maven(url) { name = alias } }
         filter { groups.forEach(::includeGroup) }
@@ -34,7 +30,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // Optional integrations, never bundled
     sc.properties.getOrNull<String>("deps.supplementaries")?.let {
         modCompileOnly("maven.modrinth:supplementaries:$it")
         modCompileOnly("maven.modrinth:moonlight:${property("deps.moonlight")}")
@@ -124,7 +119,6 @@ tasks {
         dependsOn("stonecutterGenerate")
     }
 
-    // Includes the license file in the built mod
     // Forge 1.20.1 finds mixin configs only through the manifest
     jar {
         manifest.attributes("MixinConfigs" to "${project.property("mod.id")}.mixins.json")

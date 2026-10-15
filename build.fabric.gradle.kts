@@ -2,12 +2,10 @@ import io.github.p03w.machete.tasks.OptimizeJarsTask
 import org.gradle.kotlin.dsl.support.serviceOf
 
 plugins {
-    // This plugin applies the correct loom variant based on the Minecraft version
     id("dev.kikugie.loom-back-compat")
     id("org.redlance.dima_dencep.gradle.machete")
 }
 
-// DO NOT set group = ...!
 version = "${property("mod.version")}+${sc.current.version}"
 base.archivesName = "${property("mod.id") as String}-fabric"
 
@@ -19,15 +17,10 @@ val requiredJava: JavaVersion = when {
     else -> JavaVersion.VERSION_1_8
 }
 
-// This can be used for publishing on Modrinth and Curseforge
 val compatibleVersions: List<String> = sc.properties.rawOrNull("mod", "mc_releases")
     ?.asList().orEmpty().map { it.toString() }
 
 repositories {
-    /**
-     * Restricts dependency search of the given [groups] to the [maven URL][url],
-     * improving the setup speed.
-     */
     fun strictMaven(url: String, alias: String, vararg groups: String) = exclusiveContent {
         forRepository { maven(url) { name = alias } }
         filter { groups.forEach(::includeGroup) }
@@ -38,7 +31,6 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:${sc.current.version}")
-    // Applies Mojang Mappings on obfuscated versions
     loomx.applyMojangMappings()
 
     // Use `mod{dependency type}` even on 26.1+ - loom-back-compat converts them
@@ -47,7 +39,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // Optional integrations, never bundled
     modCompileOnly("maven.modrinth:modmenu:${property("deps.modmenu")}")
     // Dev runs only, to open the config screen: never bundled or required
     modLocalRuntime("maven.modrinth:modmenu:${property("deps.modmenu")}")
@@ -69,17 +60,17 @@ dependencies {
 }
 
 loom {
-    fabricModJsonPath = rootProject.file("src/main/resources/fabric.mod.json") // Useful for interface injection
+    fabricModJsonPath = rootProject.file("src/main/resources/fabric.mod.json")
 
     decompilerOptions.named("vineflower") {
-        options.put("mark-corresponding-synthetics", "1") // Adds names to lambdas - useful for mixins
+        options.put("mark-corresponding-synthetics", "1")
     }
 
     runConfigs.all {
         preferGradleTask = true
         generateRunConfig = true
-        runDirectory = rootProject.file("run") // Shares the run directory between versions
-        jvmArguments.add("-Dmixin.debug.export=true") // Exports transformed classes for debugging
+        runDirectory = rootProject.file("run")
+        jvmArguments.add("-Dmixin.debug.export=true")
     }
 }
 
@@ -121,7 +112,6 @@ tasks {
         exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml", "pack.mcmeta")
     }
 
-    // Includes the license file in the built mod
     withType<Jar> {
         val name = project.property("mod.id")
         inputs.property("mod_id", name)
@@ -139,7 +129,6 @@ tasks {
         description = "Builds mod jars and copies results to `build/libs/{mod version}/`"
 
         inputs.property("version", project.property("mod.version"))
-        // loomx.mod(Sources)Jar returns the jar task for the applied loom variant
         from(optimizeJar.flatMap { it.output }, loomx.modSourcesJar.flatMap { it.archiveFile })
         into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
     }

@@ -9,11 +9,9 @@ plugins {
 
 stonecutter active "26.3-fabric"
 
-// See https://stonecutter.kikugie.dev/wiki/config/params
 stonecutter parameters {
     val (version, loader) = current.project.split('-', limit = 2)
 
-    // Makes version- and loader-specific properties apply from `stoncutter.properties.toml`
     properties {
         tags(version, loader)
     }
@@ -45,7 +43,6 @@ val mergedJars = tasks.register("mergedJars") {
     description = "Builds one optimized jar per Minecraft version, holding all its loaders, into `build/libs/`"
 }
 
-// Node projects are named <mc>-<loader>
 stonecutter.tree.nodes.map { it.project }.groupBy { it.name.substringBefore('-') }.forEach { (mc, projects) ->
     val name = mc.replace('.', '_')
     val merge = tasks.register("mergeLoaders_$name") {

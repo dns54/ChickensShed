@@ -134,7 +134,6 @@ public class ConfigScreen extends ShedScreen {
         return ShedConfig.mobs().containsKey(id);
     }
 
-    /** Removes the mob, as a new Undo step when {@code undoable}. */
     void remove(String id, boolean undoable) {
         Map<String, MobDrop> mobs = new LinkedHashMap<>(ShedConfig.mobs());
         mobs.remove(id);

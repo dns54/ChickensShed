@@ -18,10 +18,6 @@ val requiredJava = when {
 }
 
 repositories {
-    /**
-     * Restricts dependency search of the given [groups] to the [maven URL][url],
-     * improving the setup speed.
-     */
     fun strictMaven(url: String, alias: String, vararg groups: String) = exclusiveContent {
         forRepository { maven(url) { name = alias } }
         filter { groups.forEach(::includeGroup) }
@@ -34,7 +30,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // Optional integrations, never bundled
     sc.properties.getOrNull<String>("deps.supplementaries")?.let {
         compileOnly("maven.modrinth:supplementaries:$it")
         compileOnly("maven.modrinth:moonlight:${property("deps.moonlight")}")
@@ -112,7 +107,6 @@ tasks {
         dependsOn("stonecutterGenerate")
     }
 
-    // Includes the license file in the built mod
     withType<Jar> {
         val name = project.property("mod.id")
         inputs.property("mod_id", name)
