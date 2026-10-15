@@ -14,7 +14,6 @@ mod.mc_releases = ["1.20.1"]
 [fabric."1.20.1"]
 mod.mc_compat = ">=1.20 <=1.20.1"
 deps.modmenu = "7.2.2"
-# Dev runs only (Mod Menu needs it), never a dependency of the mod
 deps.fabric_api = "0.92.12+1.20.1"
 deps.supplementaries = "1.20-3.1.44-fabric"
 deps.moonlight = "1.20-2.16.37-fabric"

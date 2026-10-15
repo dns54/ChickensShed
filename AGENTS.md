@@ -35,7 +35,7 @@ Stonecutter multiversion repo: the VCS version is the latest Minecraft version, 
 - 26.x switches screens via `minecraft.gui.setScreen` and draws via `extractRenderState`.
 - Forge 1.20.1 needs the `MixinConfigs` manifest attribute, a refmap injected into the mixins JSON, `mixin { config(...) }` for dev runs and a Forge-only `pack.mcmeta`. "Refmap could not be read" in dev is expected.
 - Supplementaries exists for 1.20.1 and 1.21.1 only; the Stonecutter constant `supplementaries` gates the compat body. The mixin targets `containerTick` of `CapturedMobInstance` and `DataCapturedMobInstance` and reaches the mob via `getEntityForRenderer()`.
-- Compile deps come from Modrinth Maven by version number, except where loaders share one (Modrinth Maven then serves only one loader's jar): use the version id there.
+- Compile deps come from Modrinth Maven by version number, except where loaders share one (Modrinth Maven then serves only one loader's jar): use the version id there. Never by id where a project marks its sources jar as primary (the id serves a jar without classes).
 
 ## Adding a Minecraft version
 1. `settings.gradle.kts`: add the version/loaders.
