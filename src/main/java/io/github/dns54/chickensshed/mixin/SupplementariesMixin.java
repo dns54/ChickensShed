@@ -33,6 +33,10 @@ public abstract class SupplementariesMixin {
         /*if (level instanceof ServerLevel server
                 && ((CapturedMobInstance<?>) (Object) this).getEntityForRenderer() instanceof Shedder shedder) {
             shedder.chickensshed$shed(server);
+            // Supplementaries saves this tag, not the cached entity used for ticking.
+            int time = shedder.chickensshed$getTime();
+            if (time > 0) tag.putInt(Shedder.TIME_KEY, time);
+            else tag.remove(Shedder.TIME_KEY);
         }
         *///?}
     }

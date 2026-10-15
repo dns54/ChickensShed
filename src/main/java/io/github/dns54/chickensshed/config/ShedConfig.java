@@ -121,6 +121,21 @@ public final class ShedConfig {
         return Map.of("minecraft:chicken", new MobDrop());
     }
 
+    /** Gson narrows tree numbers to int silently, so check their original values first. */
+    private static void validateInteger(JsonObject entry, String field) {
+        JsonElement value = entry.get(field);
+        if (value == null) return; // Missing fields keep their defaults.
+        String problem = field + " must be an integer in the 32-bit signed range";
+        if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) {
+            throw new IllegalArgumentException(problem);
+        }
+        try {
+            value.getAsBigDecimal().intValueExact();
+        } catch (ArithmeticException | NumberFormatException e) {
+            throw new IllegalArgumentException(problem, e);
+        }
+    }
+
     /** Parses the JSON; a broken entry is logged and skipped (reported to {@code onSkip}) without touching the others. */
     static Map<String, MobDrop> parse(String json, Runnable onSkip) {
         JsonElement mobsJson = JsonParser.parseString(json).getAsJsonObject().get("mobs");
@@ -129,6 +144,10 @@ public final class ShedConfig {
         for (Map.Entry<String, JsonElement> entry : mobsJson.getAsJsonObject().entrySet()) {
             String mob = entry.getKey();
             try {
+                JsonObject fields = entry.getValue().getAsJsonObject();
+                validateInteger(fields, "count");
+                validateInteger(fields, "minSeconds");
+                validateInteger(fields, "maxSeconds");
                 MobDrop drop = GSON.fromJson(entry.getValue(), MobDrop.class);
                 String problem = !isValidId(mob) ? "mob must be an id like minecraft:chicken" : drop.problem();
                 if (problem == null) {

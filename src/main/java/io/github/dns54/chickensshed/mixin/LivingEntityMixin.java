@@ -17,9 +17,6 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin implements Shedder {
-    @Unique
-    private static final String TIME_KEY = "ChickensShedTime";
-
     /** Ticks until the next drop, 0 when not started. */
     @Unique
     private int chickensshed$time;
@@ -27,6 +24,11 @@ public abstract class LivingEntityMixin implements Shedder {
     @Override
     public void chickensshed$shed(ServerLevel level) {
         chickensshed$time = Shedding.tick((LivingEntity) (Object) this, level, chickensshed$time);
+    }
+
+    @Override
+    public int chickensshed$getTime() {
+        return chickensshed$time;
     }
 
     @Inject(method = "tick", at = @At("TAIL"))

@@ -66,7 +66,9 @@ jobs:
             java: 17
             dependencies: 'supplementaries(optional){modrinth:fFEIiSDQ}{curseforge:412082}'
           - mc: '1.21.1'
-            game-versions: '1.21 1.21.1'
+            game-versions: |
+              1.21
+              1.21.1
             loaders: 'fabric neoforge'
             java: 21
             dependencies: 'supplementaries(optional){modrinth:fFEIiSDQ}{curseforge:412082}'
