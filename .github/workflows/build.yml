@@ -1,0 +1,33 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # Each Minecraft version compiles with its own toolchain (17, 21, 25)
+      - name: Setup JDKs
+        uses: actions/setup-java@v6
+        with:
+          java-version: |
+            17
+            21
+            25
+          distribution: 'temurin'
+
+      # Also validates the Gradle wrapper
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build and test all versions
+        run: ./gradlew build mergedJars
+
+      - name: Upload jars
+        uses: actions/upload-artifact@v7
+        with:
+          name: jars
+          path: build/libs/*.jar
