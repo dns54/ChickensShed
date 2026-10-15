@@ -91,7 +91,7 @@ public class MobEditScreen extends ShedScreen {
 
     private void mobPreview(Canvas canvas, int x, int y) {
         Shedding.findMob(withNamespace(mob)).ifPresentOrElse(
-            type -> canvas.text(type.getDescription(), x, y + 6, GREEN),
+            type -> canvas.text(fit(type.getDescription(), COLUMN), x, y + 6, GREEN),
             () -> canvas.text(Component.translatable("chickensshed.edit.unknown"), x, y + 6, RED));
     }
 
@@ -99,8 +99,14 @@ public class MobEditScreen extends ShedScreen {
         Shedding.findItem(withNamespace(item)).ifPresentOrElse(found -> {
             var stack = icon(found);
             if (stack != null) canvas.item(stack, x, y + 2);
-            canvas.text(name(found), x + 20, y + 6, GREEN);
+            canvas.text(fit(name(found), COLUMN - 20), x + 20, y + 6, GREEN);
         }, () -> canvas.text(Component.translatable("chickensshed.edit.unknown"), x, y + 6, RED));
+    }
+
+    /** Shortens a preview to its column, so long names don't run over the scrollbar. */
+    private Component fit(Component text, int width) {
+        if (font.width(text) <= width) return text;
+        return Component.literal(font.plainSubstrByWidth(text.getString(), width - font.width("…")) + "…");
     }
 
     /** Saves the mob as soon as everything is valid. */
@@ -113,6 +119,7 @@ public class MobEditScreen extends ShedScreen {
         }
         String id = withNamespace(mob);
         if (list.put(savedId, id, drop.copy())) savedId = id;
+        else problem = Component.translatable("chickensshed.config.save_failed");
     }
 
     /** Copies the fields into {@link #drop}; returns what's wrong, or null. */

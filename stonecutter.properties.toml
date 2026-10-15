@@ -29,7 +29,7 @@ deps.moonlight = "1.20-2.16.37-fabric"
 mod.mc_compat = "[1.20.1]"
 deps.forge = "1.20.1-47.4.28"
 deps.supplementaries = "foXRPXFH"
-deps.moonlight = "xnpMngM4"
+deps.moonlight = "1.20-2.16.37-forge" # by version number: the id stopped resolving on Modrinth Maven
 
 
 ["1.21.1"]
