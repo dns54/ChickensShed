@@ -1,7 +1,10 @@
 package io.github.dns54.chickensshed.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,5 +35,15 @@ class ShedConfigTest {
         // Missing keys fall back to defaults
         assertEquals(900, mobs.get("minecraft:cow").minSeconds);
         assertTrue(mobs.get("minecraft:cow").babies);
+    }
+
+    @Test
+    void saveReplacesTheFile(@TempDir Path dir) throws Exception {
+        ShedConfig.load(dir); // writes the defaults
+        Map<String, ShedConfig.MobDrop> mobs = Map.of("minecraft:cow", new ShedConfig.MobDrop());
+        ShedConfig.save(mobs);
+
+        assertEquals(mobs.keySet(), ShedConfig.parse(Files.readString(dir.resolve(ShedConfig.FILE_NAME)), () -> fail("entry skipped")).keySet());
+        assertFalse(Files.exists(dir.resolve(ShedConfig.FILE_NAME + ".tmp")));
     }
 }

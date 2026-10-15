@@ -39,7 +39,7 @@ public class ConfigScreen extends ShedScreen {
             String id = mob.getKey();
             MobDrop drop = mob.getValue();
             ShedList.Row row = list.row();
-            Button edit = row.add(Button.builder(describe(id, drop), b -> show(new MobEditScreen(this, id, drop.copy())))
+            Button edit = row.add(Button.builder(describe(id, drop), b -> edit(id, drop.copy()))
                 .width(WIDTH - BUTTON_HEIGHT - GAP).build(), 0);
             edit.setTooltip(Tooltip.create(Component.translatable("chickensshed.config.hint")));
             Button remove = row.add(Button.builder(Component.literal("✕").withStyle(ChatFormatting.RED), b -> remove(id))
@@ -52,7 +52,7 @@ public class ConfigScreen extends ShedScreen {
             Component empty = Component.translatable("chickensshed.config.empty");
             list.row().paint((canvas, x, y) -> canvas.text(empty, (width - font.width(empty)) / 2, y + 6, GRAY));
         }
-        list.row().add(Button.builder(Component.translatable("chickensshed.config.add"), b -> show(new MobEditScreen(this, null, new MobDrop())))
+        list.row().add(Button.builder(Component.translatable("chickensshed.config.add"), b -> edit(null, new MobDrop()))
             .width(WIDTH).build(), 0);
         list.setScrollAmount(scroll);
 
@@ -62,6 +62,12 @@ public class ConfigScreen extends ShedScreen {
         Button reset = Button.builder(Component.translatable("chickensshed.config.reset"), b -> reset()).build();
         reset.setTooltip(Tooltip.create(Component.translatable("chickensshed.config.reset.tooltip")));
         footer(undo, reset, Button.builder(CommonComponents.GUI_DONE, b -> onClose()).build());
+    }
+
+    /** Opens the edit screen, remembering the scroll position to come back to. */
+    private void edit(String id, MobDrop drop) {
+        scroll = list.scroll();
+        show(new MobEditScreen(this, id, drop));
     }
 
     /** Rebuilds the screen after a change, keeping the list scrolled where it was. */

@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import io.github.dns54.chickensshed.ChickensShed;
 
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -105,7 +106,14 @@ public final class ShedConfig {
         JsonObject root = new JsonObject();
         root.add("mobs", mobsJson);
         Files.createDirectories(file.getParent());
-        Files.writeString(file, GSON.toJson(root));
+        // Written next to it and swapped in, so a crash or full disk mid-write never leaves a half-written config
+        Path tmp = file.resolveSibling(FILE_NAME + ".tmp");
+        Files.writeString(tmp, GSON.toJson(root));
+        try {
+            Files.move(tmp, file, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING);
+        }
         mobs = Collections.unmodifiableMap(new LinkedHashMap<>(newMobs));
     }
 
